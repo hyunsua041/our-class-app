@@ -1,0 +1,53 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Link from "next/link";
+import { isAdmin } from "@/lib/auth";
+import AdminBar from "@/components/AdminBar";
+import NavTabs from "@/components/NavTabs";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "우리 반 앱",
+  description: "우리 반 학생들을 위한 공지·칭찬·추억 공간",
+  robots: { index: false, follow: false },
+};
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const admin = await isAdmin();
+
+  return (
+    <html
+      lang="ko"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+        <header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
+          <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+            <Link href="/notices" className="text-lg font-bold text-sky-600">
+              🏫 우리 반
+            </Link>
+            <AdminBar isAdmin={admin} />
+          </div>
+          <NavTabs />
+        </header>
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}
