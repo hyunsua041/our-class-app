@@ -104,7 +104,9 @@ export default function StudentAuthForm({ subjects }: { subjects: Subject[] }) {
         >
           {pending ? "처리 중..." : mode === "login" ? "로그인" : "가입하고 시작하기"}
         </button>
-        {state?.error && <p className="text-xs text-red-500">{state.error}</p>}
+        {state && !state.ok && state.error && (
+          <p className="text-xs text-red-500">{state.error}</p>
+        )}
       </form>
     </div>
   );

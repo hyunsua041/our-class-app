@@ -426,7 +426,7 @@ export async function getNoticesNeedingReminder(
     title: n.title,
     content: n.content,
     dueDate: n.due_date ?? undefined,
-    subject: n.subject ?? null,
+    subjects: n.subjects ?? [],
     createdAt: n.created_at,
   }));
 }

@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   ]);
 
   for (const n of dueTomorrow) {
-    await sendPushToAudience(n.subject ?? null, {
+    await sendPushToAudience(n.subjects, {
       title: `⏰ 내일 마감: ${n.title}`,
       body: n.content.slice(0, 80),
       url: "/notices",
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
   }
 
   for (const n of dueNextWeek) {
-    await sendPushToAudience(n.subject ?? null, {
+    await sendPushToAudience(n.subjects, {
       title: `📅 일주일 뒤 마감: ${n.title}`,
       body: n.content.slice(0, 80),
       url: "/notices",
