@@ -38,9 +38,10 @@ export default function NoticeList({
     onlyMine && mySubjects
       ? notices.filter(
           (n) =>
-            !n.subject ||
-            mySubjects.includes(n.subject) ||
-            commonSubjectNames.includes(n.subject)
+            n.subjects.length === 0 ||
+            n.subjects.some(
+              (s) => mySubjects.includes(s) || commonSubjectNames.includes(s)
+            )
         )
       : notices;
 
@@ -84,11 +85,14 @@ export default function NoticeList({
             </p>
             <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
               <span>{formatDate(n.createdAt)}</span>
-              {n.subject && (
-                <span className="rounded-full bg-sky-100 px-2 py-0.5 font-medium text-sky-600">
-                  {n.subject}
+              {n.subjects.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full bg-sky-100 px-2 py-0.5 font-medium text-sky-600"
+                >
+                  {s}
                 </span>
-              )}
+              ))}
               {n.dueDate && (
                 <span className="font-semibold text-rose-500">
                   마감 {n.dueDate} ({dDay(n.dueDate)})

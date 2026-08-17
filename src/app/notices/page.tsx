@@ -10,7 +10,6 @@ export default async function NoticesPage() {
   const notices = await getNotices();
   const subjects = await getSubjects();
   const commonSubjectNames = subjects.filter((s) => s.isCommon).map((s) => s.name);
-  const electiveSubjects = subjects.filter((s) => !s.isCommon);
 
   return (
     <div className="flex flex-col gap-6">
@@ -39,32 +38,25 @@ export default async function NoticesPage() {
             rows={3}
             className="rounded-md border px-3 py-2 text-sm"
           />
-          <label className="flex items-center gap-2 text-xs text-slate-500">
-            관련 과목 (선택 안 하면 전체 공지)
-            <select
-              name="subject"
-              defaultValue=""
-              className="rounded-md border px-2 py-1 text-sm"
-            >
-              <option value="">전체</option>
-              <optgroup label="공통과목">
-                {subjects
-                  .filter((s) => s.isCommon)
-                  .map((s) => (
-                    <option key={s.id} value={s.name}>
-                      {s.name}
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label="선택과목">
-                {electiveSubjects.map((s) => (
-                  <option key={s.id} value={s.name}>
-                    {s.name}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </label>
+          <fieldset className="flex flex-col gap-1 text-xs text-slate-500">
+            <legend className="mb-1">
+              관련 과목 (여러 개 선택 가능, 아무것도 안 고르면 전체 공지)
+            </legend>
+            <div className="flex flex-wrap gap-1.5">
+              {subjects.map((s) => (
+                <label
+                  key={s.id}
+                  className="flex items-center gap-1 rounded-full border px-2.5 py-1 has-checked:border-sky-400 has-checked:bg-sky-50"
+                >
+                  <input type="checkbox" name="subjects" value={s.name} />
+                  {s.name}
+                  {s.isCommon && (
+                    <span className="text-[10px] text-slate-400">공통</span>
+                  )}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label className="flex items-center gap-2 text-xs text-slate-500">
             마감일 (선택)
             <input

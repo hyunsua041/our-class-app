@@ -14,21 +14,28 @@ type PushPayload = {
   url?: string;
 };
 
-// subject가 null이면 전체 학생에게, 지정하면 해당 선택과목 학생에게만 발송
+// subjects가 비어있으면 전체 학생에게, 지정하면 해당 과목을 고른 학생(+공통과목이면 전체)에게 발송
 export async function sendPushToAudience(
-  subject: string | null,
+  subjects: string[],
   payload: PushPayload
 ) {
-  const { data: subs, error } = await supabase
-    .from("push_subscriptions")
-    .select("id, endpoint, p256dh, auth, student_id, students(subjects)");
+  const [{ data: subs, error }, { data: subjectRows }] = await Promise.all([
+    supabase
+      .from("push_subscriptions")
+      .select("id, endpoint, p256dh, auth, student_id, students(subjects)"),
+    supabase.from("subjects").select("name, is_common"),
+  ]);
   if (error) throw error;
 
+  const hasCommon = (subjectRows || []).some(
+    (s) => s.is_common && subjects.includes(s.name)
+  );
+
   const targets = subs.filter((s) => {
-    if (!subject) return true;
+    if (subjects.length === 0 || hasCommon) return true;
     const studentSubjects = (s.students as unknown as { subjects: string[] } | null)
       ?.subjects;
-    return studentSubjects?.includes(subject) ?? false;
+    return studentSubjects?.some((name) => subjects.includes(name)) ?? false;
   });
 
   const invalidIds: string[] = [];

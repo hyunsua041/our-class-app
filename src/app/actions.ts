@@ -54,18 +54,18 @@ export async function createNotice(formData: FormData) {
   const title = String(formData.get("title") || "").trim();
   const content = String(formData.get("content") || "").trim();
   const dueDate = String(formData.get("dueDate") || "").trim();
-  const subject = String(formData.get("subject") || "").trim();
+  const subjects = formData.getAll("subjects").map(String);
   if (!title || !content) return;
 
   await createNoticeRow({
     title,
     content,
     dueDate: dueDate || undefined,
-    subject: subject || null,
+    subjects,
   });
   revalidatePath("/notices");
 
-  sendPushToAudience(subject || null, {
+  sendPushToAudience(subjects, {
     title: "📢 새 공지: " + title,
     body: content.slice(0, 80),
     url: "/notices",
@@ -208,6 +208,7 @@ export async function studentSignup(formData: FormData) {
   const id = existing
     ? existing.id
     : await createStudentRow({ name, pin, subjects });
+  const finalSubjects = existing ? existing.subjects : subjects;
 
   store.set(STUDENT_COOKIE_NAME, id, {
     httpOnly: true,
@@ -216,7 +217,7 @@ export async function studentSignup(formData: FormData) {
     maxAge: STUDENT_SESSION_MAX_AGE,
   });
   revalidatePath("/");
-  return { ok: true as const };
+  return { ok: true as const, needsSubjects: finalSubjects.length === 0 };
 }
 
 export async function studentLogin(formData: FormData) {
@@ -240,7 +241,7 @@ export async function studentLogin(formData: FormData) {
     maxAge: STUDENT_SESSION_MAX_AGE,
   });
   revalidatePath("/");
-  return { ok: true as const };
+  return { ok: true as const, needsSubjects: student.subjects.length === 0 };
 }
 
 export async function studentLogout() {

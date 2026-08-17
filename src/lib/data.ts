@@ -26,7 +26,7 @@ export async function getNotices(): Promise<Notice[]> {
     title: n.title,
     content: n.content,
     dueDate: n.due_date ?? undefined,
-    subject: n.subject ?? null,
+    subjects: n.subjects ?? [],
     createdAt: n.created_at,
   }));
 }
@@ -35,7 +35,7 @@ export async function createNoticeRow(input: {
   title: string;
   content: string;
   dueDate?: string;
-  subject?: string | null;
+  subjects: string[];
 }) {
   const { data, error } = await supabase
     .from("notices")
@@ -43,7 +43,7 @@ export async function createNoticeRow(input: {
       title: input.title,
       content: input.content,
       due_date: input.dueDate || null,
-      subject: input.subject || null,
+      subjects: input.subjects,
     })
     .select("id")
     .single();

@@ -3,7 +3,7 @@ export type Notice = {
   title: string;
   content: string;
   dueDate?: string;
-  subject?: string | null;
+  subjects: string[];
   createdAt: string;
 };
 

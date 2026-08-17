@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { studentLogin, studentSignup } from "@/app/actions";
 import type { Subject } from "@/lib/types";
 
-type AuthState = { ok: boolean; error?: string } | null;
+type AuthState =
+  | { ok: true; needsSubjects: boolean }
+  | { ok: false; error?: string }
+  | null;
 
 export default function StudentAuthForm({ subjects }: { subjects: Subject[] }) {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -15,7 +18,7 @@ export default function StudentAuthForm({ subjects }: { subjects: Subject[] }) {
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     async (_prev, formData) => {
       const res = await action(formData);
-      if (res.ok) router.push("/notices");
+      if (res.ok) router.push(res.needsSubjects ? "/me" : "/notices");
       return res;
     },
     null

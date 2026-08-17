@@ -30,6 +30,11 @@ export default async function MePage() {
 
       <div>
         <h2 className="mb-2 text-sm font-semibold text-slate-600">내 선택과목</h2>
+        {student.subjects.length === 0 && (
+          <p className="mb-2 text-xs text-rose-500">
+            아직 선택과목이 없어요. 골라야 관련 공지를 놓치지 않아요!
+          </p>
+        )}
         <SubjectsForm
           subjects={subjects}
           mySubjects={student.subjects}
