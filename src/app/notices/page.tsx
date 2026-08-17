@@ -1,12 +1,11 @@
-import { readCollection } from "@/lib/store";
+import { getNotices } from "@/lib/data";
 import { isAdmin } from "@/lib/auth";
-import type { Notice } from "@/lib/types";
 import { createNotice, deleteNotice } from "@/app/actions";
 import DeleteButton from "@/components/DeleteButton";
 
 export default async function NoticesPage() {
   const admin = await isAdmin();
-  const notices = readCollection<Notice>("notices");
+  const notices = await getNotices();
 
   return (
     <div className="flex flex-col gap-6">

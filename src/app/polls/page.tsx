@@ -1,14 +1,13 @@
 import { cookies } from "next/headers";
-import { readCollection } from "@/lib/store";
+import { getPolls } from "@/lib/data";
 import { isAdmin } from "@/lib/auth";
-import type { Poll } from "@/lib/types";
 import { createPoll, deletePoll, votePoll } from "@/app/actions";
 import DeleteButton from "@/components/DeleteButton";
 import PollVoteForm from "@/components/PollVoteForm";
 
 export default async function PollsPage() {
   const admin = await isAdmin();
-  const polls = readCollection<Poll>("polls");
+  const polls = await getPolls();
   const cookieStore = await cookies();
   const votedIds = (cookieStore.get("voted_polls")?.value || "")
     .split(",")

@@ -2,12 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { randomUUID } from "crypto";
-import fs from "fs";
-import path from "path";
-import { readCollection, writeCollection } from "@/lib/store";
 import { isAdmin, ADMIN_COOKIE_NAME } from "@/lib/auth";
-import type { Notice, Praise, Photo, Poll } from "@/lib/types";
+import {
+  createNoticeRow,
+  deleteNoticeRow,
+  createPraiseRow,
+  deletePraiseRow,
+  createPhotoRow,
+  deletePhotoRow,
+  createPollRow,
+  deletePollRow,
+  voteOnPoll,
+} from "@/lib/data";
 
 // --- Admin ---
 export async function adminLogin(formData: FormData) {
@@ -39,22 +45,13 @@ export async function createNotice(formData: FormData) {
   const dueDate = String(formData.get("dueDate") || "").trim();
   if (!title || !content) return;
 
-  const notices = readCollection<Notice>("notices");
-  notices.unshift({
-    id: randomUUID(),
-    title,
-    content,
-    dueDate: dueDate || undefined,
-    createdAt: new Date().toISOString(),
-  });
-  writeCollection("notices", notices);
+  await createNoticeRow({ title, content, dueDate: dueDate || undefined });
   revalidatePath("/notices");
 }
 
 export async function deleteNotice(id: string) {
   if (!(await isAdmin())) throw new Error("권한이 없어요.");
-  const notices = readCollection<Notice>("notices").filter((n) => n.id !== id);
-  writeCollection("notices", notices);
+  await deleteNoticeRow(id);
   revalidatePath("/notices");
 }
 
@@ -65,21 +62,16 @@ export async function createPraise(formData: FormData) {
   const authorName = String(formData.get("authorName") || "").trim();
   if (!content) return;
 
-  const praises = readCollection<Praise>("praises");
-  praises.unshift({
-    id: randomUUID(),
+  await createPraiseRow({
     content,
     authorName: isAnonymous ? null : authorName || null,
-    createdAt: new Date().toISOString(),
   });
-  writeCollection("praises", praises);
   revalidatePath("/praise");
 }
 
 export async function deletePraise(id: string) {
   if (!(await isAdmin())) throw new Error("권한이 없어요.");
-  const praises = readCollection<Praise>("praises").filter((p) => p.id !== id);
-  writeCollection("praises", praises);
+  await deletePraiseRow(id);
   revalidatePath("/praise");
 }
 
@@ -101,25 +93,15 @@ export async function uploadPhoto(formData: FormData) {
     return { ok: false as const, error: "사진 용량은 5MB 이하로 올려줘." };
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  fs.mkdirSync(uploadsDir, { recursive: true });
-
-  const ext = path.extname(file.name) || "";
-  const id = randomUUID();
-  const filename = `${id}${ext}`;
-  const bytes = Buffer.from(await file.arrayBuffer());
-  fs.writeFileSync(path.join(uploadsDir, filename), bytes);
-
-  const photos = readCollection<Photo>("photos");
-  photos.unshift({
-    id,
-    url: `/uploads/${filename}`,
-    caption: caption || undefined,
-    createdAt: new Date().toISOString(),
-  });
-  writeCollection("photos", photos);
+  await createPhotoRow({ file, caption: caption || undefined });
   revalidatePath("/photos");
   return { ok: true as const };
+}
+
+export async function deletePhoto(id: string) {
+  if (!(await isAdmin())) throw new Error("권한이 없어요.");
+  await deletePhotoRow(id);
+  revalidatePath("/photos");
 }
 
 // --- Polls (우리반 투표) ---
@@ -135,21 +117,13 @@ export async function createPoll(formData: FormData) {
     .filter(Boolean);
   if (!question || optionTexts.length < 2) return;
 
-  const polls = readCollection<Poll>("polls");
-  polls.unshift({
-    id: randomUUID(),
-    question,
-    options: optionTexts.map((text) => ({ id: randomUUID(), text, votes: 0 })),
-    createdAt: new Date().toISOString(),
-  });
-  writeCollection("polls", polls);
+  await createPollRow({ question, optionTexts });
   revalidatePath("/polls");
 }
 
 export async function deletePoll(id: string) {
   if (!(await isAdmin())) throw new Error("권한이 없어요.");
-  const polls = readCollection<Poll>("polls").filter((p) => p.id !== id);
-  writeCollection("polls", polls);
+  await deletePollRow(id);
   revalidatePath("/polls");
 }
 
@@ -160,13 +134,7 @@ export async function votePoll(pollId: string, optionId: string) {
     .filter(Boolean);
   if (voted.includes(pollId)) return;
 
-  const polls = readCollection<Poll>("polls");
-  const poll = polls.find((p) => p.id === pollId);
-  const option = poll?.options.find((o) => o.id === optionId);
-  if (!poll || !option) return;
-
-  option.votes += 1;
-  writeCollection("polls", polls);
+  await voteOnPoll(pollId, optionId);
 
   voted.push(pollId);
   store.set(VOTED_POLLS_COOKIE, voted.join(","), {
@@ -176,19 +144,4 @@ export async function votePoll(pollId: string, optionId: string) {
     maxAge: 60 * 60 * 24 * 365,
   });
   revalidatePath("/polls");
-}
-
-export async function deletePhoto(id: string) {
-  if (!(await isAdmin())) throw new Error("권한이 없어요.");
-  const photos = readCollection<Photo>("photos");
-  const target = photos.find((p) => p.id === id);
-  if (target) {
-    const filePath = path.join(process.cwd(), "public", target.url);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  }
-  writeCollection(
-    "photos",
-    photos.filter((p) => p.id !== id)
-  );
-  revalidatePath("/photos");
 }

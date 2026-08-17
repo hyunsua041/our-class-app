@@ -1,13 +1,12 @@
-import { readCollection } from "@/lib/store";
+import { getPraises } from "@/lib/data";
 import { isAdmin } from "@/lib/auth";
-import type { Praise } from "@/lib/types";
 import { createPraise, deletePraise } from "@/app/actions";
 import DeleteButton from "@/components/DeleteButton";
 import PraiseForm from "@/components/PraiseForm";
 
 export default async function PraisePage() {
   const admin = await isAdmin();
-  const praises = readCollection<Praise>("praises");
+  const praises = await getPraises();
 
   return (
     <div className="flex flex-col gap-6">

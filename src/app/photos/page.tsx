@@ -1,13 +1,12 @@
-import { readCollection } from "@/lib/store";
+import { getPhotos } from "@/lib/data";
 import { isAdmin } from "@/lib/auth";
-import type { Photo } from "@/lib/types";
 import { deletePhoto } from "@/app/actions";
 import DeleteButton from "@/components/DeleteButton";
 import PhotoUploadForm from "@/components/PhotoUploadForm";
 
 export default async function PhotosPage() {
   const admin = await isAdmin();
-  const photos = readCollection<Photo>("photos");
+  const photos = await getPhotos();
 
   return (
     <div className="flex flex-col gap-6">
