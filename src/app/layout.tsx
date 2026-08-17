@@ -22,6 +22,12 @@ export const metadata: Metadata = {
   title: "우리 반 앱",
   description: "우리 반 학생들을 위한 공지·칭찬·추억 공간",
   robots: { index: false, follow: false },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "우리 반 앱",
+  },
 };
 
 export default async function RootLayout({
