@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { getSubjects } from "@/lib/data";
-import { getStudentId } from "@/lib/studentAuth";
+import { getCurrentStudent } from "@/lib/studentAuth";
 import StudentAuthForm from "@/components/StudentAuthForm";
 
 export default async function LoginPage() {
-  const studentId = await getStudentId();
-  if (studentId) redirect("/notices");
+  const student = await getCurrentStudent();
+  if (student) redirect("/notices");
 
   const subjects = await getSubjects();
 
