@@ -13,6 +13,7 @@ export default function SubjectsForm({
   action: (formData: FormData) => Promise<void> | void;
 }) {
   const [pending, startTransition] = useTransition();
+  const electives = subjects.filter((s) => !s.isCommon);
 
   return (
     <form
@@ -20,12 +21,12 @@ export default function SubjectsForm({
       className="flex flex-col gap-3 rounded-xl border bg-white p-4 shadow-sm"
     >
       <div className="flex flex-wrap gap-2">
-        {subjects.length === 0 && (
+        {electives.length === 0 && (
           <p className="text-xs text-slate-400">
             아직 등록된 선택과목이 없어요.
           </p>
         )}
-        {subjects.map((s) => (
+        {electives.map((s) => (
           <label
             key={s.id}
             className="flex items-center gap-1 rounded-full border px-3 py-1 text-sm has-checked:border-sky-400 has-checked:bg-sky-50"

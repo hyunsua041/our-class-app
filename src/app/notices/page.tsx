@@ -8,7 +8,9 @@ export default async function NoticesPage() {
   const admin = await isAdmin();
   const student = await getCurrentStudent();
   const notices = await getNotices();
-  const subjects = admin ? await getSubjects() : [];
+  const subjects = await getSubjects();
+  const commonSubjectNames = subjects.filter((s) => s.isCommon).map((s) => s.name);
+  const electiveSubjects = subjects.filter((s) => !s.isCommon);
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,11 +47,22 @@ export default async function NoticesPage() {
               className="rounded-md border px-2 py-1 text-sm"
             >
               <option value="">전체</option>
-              {subjects.map((s) => (
-                <option key={s.id} value={s.name}>
-                  {s.name}
-                </option>
-              ))}
+              <optgroup label="공통과목">
+                {subjects
+                  .filter((s) => s.isCommon)
+                  .map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="선택과목">
+                {electiveSubjects.map((s) => (
+                  <option key={s.id} value={s.name}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </label>
           <label className="flex items-center gap-2 text-xs text-slate-500">
@@ -70,6 +83,7 @@ export default async function NoticesPage() {
         notices={notices}
         admin={admin}
         mySubjects={student ? student.subjects : null}
+        commonSubjectNames={commonSubjectNames}
         onDelete={deleteNotice}
       />
     </div>

@@ -204,18 +204,21 @@ export async function voteOnPoll(pollId: string, optionId: string) {
   if (error) throw error;
 }
 
-// --- Subjects (선택과목 목록, 관리자가 관리) ---
+// --- Subjects (공통과목 + 선택과목 목록, 관리자가 관리) ---
 export async function getSubjects(): Promise<Subject[]> {
   const { data, error } = await supabase
     .from("subjects")
     .select("*")
+    .order("is_common", { ascending: false })
     .order("name", { ascending: true });
   if (error) throw error;
-  return data.map((s) => ({ id: s.id, name: s.name }));
+  return data.map((s) => ({ id: s.id, name: s.name, isCommon: s.is_common }));
 }
 
-export async function createSubjectRow(name: string) {
-  const { error } = await supabase.from("subjects").insert({ name });
+export async function createSubjectRow(name: string, isCommon: boolean) {
+  const { error } = await supabase
+    .from("subjects")
+    .insert({ name, is_common: isCommon });
   if (error) throw error;
 }
 
@@ -294,6 +297,7 @@ function toStudyGoal(row: {
   id: string;
   title: string;
   target_minutes: number;
+  actual_minutes: number | null;
   points: number;
   completed: boolean;
   completed_note: string | null;
@@ -304,6 +308,7 @@ function toStudyGoal(row: {
     id: row.id,
     title: row.title,
     targetMinutes: row.target_minutes,
+    actualMinutes: row.actual_minutes,
     points: row.points,
     completed: row.completed,
     completedNote: row.completed_note,
@@ -322,14 +327,23 @@ export async function getStudyGoals(studentId: string): Promise<StudyGoal[]> {
   return data.map(toStudyGoal);
 }
 
-export async function getTotalPoints(studentId: string): Promise<number> {
+export async function getTotalMinutes(studentId: string): Promise<number> {
   const { data, error } = await supabase
     .from("study_goals")
-    .select("points")
+    .select("actual_minutes")
     .eq("student_id", studentId)
     .eq("completed", true);
   if (error) throw error;
-  return data.reduce((sum, g) => sum + g.points, 0);
+  return data.reduce((sum, g) => sum + (g.actual_minutes || 0), 0);
+}
+
+export async function getClassTotalMinutes(): Promise<number> {
+  const { data, error } = await supabase
+    .from("study_goals")
+    .select("actual_minutes")
+    .eq("completed", true);
+  if (error) throw error;
+  return data.reduce((sum, g) => sum + (g.actual_minutes || 0), 0);
 }
 
 export async function createStudyGoalRow(input: {
@@ -350,12 +364,16 @@ export async function createStudyGoalRow(input: {
 export async function completeStudyGoalRow(
   id: string,
   studentId: string,
+  actualMinutes: number,
   note: string
 ) {
+  const points = Math.max(1, Math.round(actualMinutes / 10));
   const { error } = await supabase
     .from("study_goals")
     .update({
       completed: true,
+      actual_minutes: actualMinutes,
+      points,
       completed_note: note || null,
       completed_at: new Date().toISOString(),
     })

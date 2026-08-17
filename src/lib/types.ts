@@ -10,6 +10,7 @@ export type Notice = {
 export type Subject = {
   id: string;
   name: string;
+  isCommon: boolean;
 };
 
 export type Student = {
@@ -22,6 +23,7 @@ export type StudyGoal = {
   id: string;
   title: string;
   targetMinutes: number;
+  actualMinutes?: number | null;
   points: number;
   completed: boolean;
   completedNote?: string | null;

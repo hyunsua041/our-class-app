@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentStudent } from "@/lib/studentAuth";
-import { getSubjects, getTotalPoints } from "@/lib/data";
+import { getSubjects, getTotalMinutes } from "@/lib/data";
 import { updateMySubjects } from "@/app/actions";
 import SubjectsForm from "@/components/SubjectsForm";
 import PushSubscribeButton from "@/components/PushSubscribeButton";
@@ -9,9 +9,9 @@ export default async function MePage() {
   const student = await getCurrentStudent();
   if (!student) redirect("/login");
 
-  const [subjects, points] = await Promise.all([
+  const [subjects, minutes] = await Promise.all([
     getSubjects(),
-    getTotalPoints(student.id),
+    getTotalMinutes(student.id),
   ]);
 
   return (
@@ -19,7 +19,10 @@ export default async function MePage() {
       <div>
         <h1 className="text-xl font-bold">👤 {student.name}님</h1>
         <p className="mt-1 text-sm text-slate-500">
-          누적 점수 <span className="font-semibold text-violet-600">{points}점</span>
+          내가 채운 시간{" "}
+          <span className="font-semibold text-violet-600">
+            {Math.floor(minutes / 60)}시간 {minutes % 60}분
+          </span>
         </p>
       </div>
 

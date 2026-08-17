@@ -79,7 +79,9 @@ export default function StudentAuthForm({ subjects }: { subjects: Subject[] }) {
               </p>
             )}
             <div className="flex flex-wrap gap-2">
-              {subjects.map((s) => (
+              {subjects
+                .filter((s) => !s.isCommon)
+                .map((s) => (
                 <label
                   key={s.id}
                   className="flex items-center gap-1 rounded-full border px-3 py-1 has-checked:border-sky-400 has-checked:bg-sky-50"

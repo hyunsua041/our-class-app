@@ -173,8 +173,9 @@ export async function votePoll(pollId: string, optionId: string) {
 export async function createSubject(formData: FormData) {
   if (!(await isAdmin())) throw new Error("권한이 없어요.");
   const name = String(formData.get("name") || "").trim();
+  const isCommon = formData.get("isCommon") === "on";
   if (!name) return;
-  await createSubjectRow(name);
+  await createSubjectRow(name, isCommon);
   revalidatePath("/admin");
   revalidatePath("/login");
 }
@@ -272,7 +273,8 @@ export async function completeStudyGoal(id: string, formData: FormData) {
   const studentId = await getStudentId();
   if (!studentId) throw new Error("로그인이 필요해요.");
   const note = String(formData.get("note") || "").trim();
-  await completeStudyGoalRow(id, studentId, note);
+  const actualMinutes = Math.max(1, Number(formData.get("actualMinutes") || 0));
+  await completeStudyGoalRow(id, studentId, actualMinutes, note);
   revalidatePath("/goals");
 }
 

@@ -23,35 +23,49 @@ export default async function AdminPage() {
 
       <form
         action={createSubject}
-        className="flex gap-2 rounded-xl border bg-white p-4 shadow-sm"
+        className="flex flex-wrap items-center gap-2 rounded-xl border bg-white p-4 shadow-sm"
       >
         <input
           name="name"
           required
           placeholder="과목 이름 (예: 미적분)"
-          className="flex-1 rounded-md border px-3 py-2 text-sm"
+          className="min-w-0 flex-1 rounded-md border px-3 py-2 text-sm"
         />
+        <label className="flex items-center gap-1 text-xs text-slate-500">
+          <input type="checkbox" name="isCommon" />
+          공통과목
+        </label>
         <button className="rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white">
           추가
         </button>
       </form>
 
-      <ul className="flex flex-col gap-2">
-        {subjects.length === 0 && (
-          <li className="rounded-xl border border-dashed p-6 text-center text-sm text-slate-400">
-            아직 등록된 선택과목이 없어요.
-          </li>
-        )}
-        {subjects.map((s) => (
-          <li
-            key={s.id}
-            className="flex items-center justify-between rounded-xl border bg-white px-4 py-2 shadow-sm"
-          >
-            <span className="text-sm">{s.name}</span>
-            <DeleteButton onDelete={deleteSubject.bind(null, s.id)} />
-          </li>
-        ))}
-      </ul>
+      {(["공통과목", "선택과목"] as const).map((label) => {
+        const list = subjects.filter((s) =>
+          label === "공통과목" ? s.isCommon : !s.isCommon
+        );
+        return (
+          <div key={label} className="flex flex-col gap-2">
+            <h2 className="text-sm font-semibold text-slate-600">{label}</h2>
+            <ul className="flex flex-col gap-2">
+              {list.length === 0 && (
+                <li className="rounded-xl border border-dashed p-4 text-center text-sm text-slate-400">
+                  등록된 과목이 없어요.
+                </li>
+              )}
+              {list.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex items-center justify-between rounded-xl border bg-white px-4 py-2 shadow-sm"
+                >
+                  <span className="text-sm">{s.name}</span>
+                  <DeleteButton onDelete={deleteSubject.bind(null, s.id)} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -23,18 +23,25 @@ export default function NoticeList({
   notices,
   admin,
   mySubjects,
+  commonSubjectNames,
   onDelete,
 }: {
   notices: Notice[];
   admin: boolean;
   mySubjects: string[] | null;
+  commonSubjectNames: string[];
   onDelete: (id: string) => Promise<void> | void;
 }) {
   const [onlyMine, setOnlyMine] = useState(!!mySubjects && mySubjects.length > 0);
 
   const visible =
     onlyMine && mySubjects
-      ? notices.filter((n) => !n.subject || mySubjects.includes(n.subject))
+      ? notices.filter(
+          (n) =>
+            !n.subject ||
+            mySubjects.includes(n.subject) ||
+            commonSubjectNames.includes(n.subject)
+        )
       : notices;
 
   return (
