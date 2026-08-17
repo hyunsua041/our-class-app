@@ -3,7 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { isAdmin } from "@/lib/auth";
+import { getCurrentStudent } from "@/lib/studentAuth";
 import AdminBar from "@/components/AdminBar";
+import StudentBar from "@/components/StudentBar";
 import NavTabs from "@/components/NavTabs";
 
 const geistSans = Geist({
@@ -28,6 +30,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const admin = await isAdmin();
+  const student = await getCurrentStudent();
 
   return (
     <html
@@ -40,7 +43,18 @@ export default async function RootLayout({
             <Link href="/notices" className="text-lg font-bold text-sky-600">
               🏫 우리 반
             </Link>
-            <AdminBar isAdmin={admin} />
+            <div className="flex items-center gap-2">
+              <StudentBar student={student} />
+              <AdminBar isAdmin={admin} />
+              {admin && (
+                <Link
+                  href="/admin"
+                  className="rounded-full border px-3 py-1 text-xs font-medium text-slate-500"
+                >
+                  ⚙️ 관리
+                </Link>
+              )}
+            </div>
           </div>
           <NavTabs />
         </header>

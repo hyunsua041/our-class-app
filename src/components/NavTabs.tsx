@@ -8,6 +8,7 @@ const TABS = [
   { href: "/praise", label: "💛 칭찬" },
   { href: "/photos", label: "📸 사진" },
   { href: "/polls", label: "🗳️ 투표" },
+  { href: "/goals", label: "🎯 목표" },
 ];
 
 export default function NavTabs() {

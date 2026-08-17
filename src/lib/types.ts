@@ -3,6 +3,29 @@ export type Notice = {
   title: string;
   content: string;
   dueDate?: string;
+  subject?: string | null;
+  createdAt: string;
+};
+
+export type Subject = {
+  id: string;
+  name: string;
+};
+
+export type Student = {
+  id: string;
+  name: string;
+  subjects: string[];
+};
+
+export type StudyGoal = {
+  id: string;
+  title: string;
+  targetMinutes: number;
+  points: number;
+  completed: boolean;
+  completedNote?: string | null;
+  completedAt?: string | null;
   createdAt: string;
 };
 

@@ -1,11 +1,14 @@
-import { getNotices } from "@/lib/data";
+import { getNotices, getSubjects } from "@/lib/data";
 import { isAdmin } from "@/lib/auth";
+import { getCurrentStudent } from "@/lib/studentAuth";
 import { createNotice, deleteNotice } from "@/app/actions";
-import DeleteButton from "@/components/DeleteButton";
+import NoticeList from "@/components/NoticeList";
 
 export default async function NoticesPage() {
   const admin = await isAdmin();
+  const student = await getCurrentStudent();
   const notices = await getNotices();
+  const subjects = admin ? await getSubjects() : [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,6 +38,21 @@ export default async function NoticesPage() {
             className="rounded-md border px-3 py-2 text-sm"
           />
           <label className="flex items-center gap-2 text-xs text-slate-500">
+            관련 과목 (선택 안 하면 전체 공지)
+            <select
+              name="subject"
+              defaultValue=""
+              className="rounded-md border px-2 py-1 text-sm"
+            >
+              <option value="">전체</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-500">
             마감일 (선택)
             <input
               name="dueDate"
@@ -48,47 +66,12 @@ export default async function NoticesPage() {
         </form>
       )}
 
-      <ul className="flex flex-col gap-3">
-        {notices.length === 0 && (
-          <li className="rounded-xl border border-dashed p-6 text-center text-sm text-slate-400">
-            아직 등록된 공지가 없어요.
-          </li>
-        )}
-        {notices.map((n) => (
-          <li key={n.id} className="rounded-xl border bg-white p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="font-semibold">{n.title}</h2>
-              {admin && <DeleteButton onDelete={deleteNotice.bind(null, n.id)} />}
-            </div>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">
-              {n.content}
-            </p>
-            <div className="mt-2 flex gap-3 text-xs text-slate-400">
-              <span>{formatDate(n.createdAt)}</span>
-              {n.dueDate && (
-                <span className="font-semibold text-rose-500">
-                  마감 {n.dueDate} ({dDay(n.dueDate)})
-                </span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <NoticeList
+        notices={notices}
+        admin={admin}
+        mySubjects={student ? student.subjects : null}
+        onDelete={deleteNotice}
+      />
     </div>
   );
-}
-
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
-}
-
-function dDay(dateStr: string) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dateStr);
-  due.setHours(0, 0, 0, 0);
-  const diff = Math.round((due.getTime() - today.getTime()) / 86400000);
-  if (diff === 0) return "D-day";
-  return diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
 }
