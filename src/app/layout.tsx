@@ -28,6 +28,12 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "우리 반 앱",
   },
+  icons: {
+    apple: "/icon.svg",
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export default async function RootLayout({
