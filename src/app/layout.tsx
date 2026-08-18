@@ -19,14 +19,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "우리 반 앱",
-  description: "우리 반 학생들을 위한 공지·칭찬·추억 공간",
+  title: "2학년 8반 ❤️",
+  description: "2학년 8반 학생들을 위한 공지·칭찬·추억 공간",
   robots: { index: false, follow: false },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "우리 반 앱",
+    title: "2학년 8반 ❤️",
   },
   icons: {
     apple: "/icon.svg",
@@ -53,7 +53,7 @@ export default async function RootLayout({
         <header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
           <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
             <Link href="/notices" className="text-lg font-bold text-sky-600">
-              🏫 우리 반
+              🏫 2학년 8반 ❤️
             </Link>
             <div className="flex items-center gap-2">
               <StudentBar student={student} />
