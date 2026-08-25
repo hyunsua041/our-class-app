@@ -101,6 +101,26 @@ export async function deletePraise(id: string) {
 // --- Photos ---
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const HEIC_TYPES = ["image/heic", "image/heif"];
+
+function isHeicFile(file: File) {
+  return HEIC_TYPES.includes(file.type) || /\.hei[cf]$/i.test(file.name);
+}
+
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const heicConvert = (await import("heic-convert")).default;
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  const outputBuffer = await heicConvert({
+    buffer: inputBuffer,
+    format: "JPEG",
+    quality: 0.85,
+  });
+  return new File(
+    [new Uint8Array(outputBuffer)],
+    file.name.replace(/\.hei[cf]$/i, ".jpg"),
+    { type: "image/jpeg" }
+  );
+}
 
 export async function uploadPhoto(formData: FormData) {
   const file = formData.get("photo");
@@ -109,14 +129,28 @@ export async function uploadPhoto(formData: FormData) {
   if (!(file instanceof File) || file.size === 0) {
     return { ok: false as const, error: "사진을 선택해줘." };
   }
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return { ok: false as const, error: "이미지 파일(jpg, png, webp, gif)만 올릴 수 있어." };
-  }
   if (file.size > MAX_PHOTO_BYTES) {
     return { ok: false as const, error: "사진 용량은 5MB 이하로 올려줘." };
   }
 
-  await createPhotoRow({ file, caption: caption || undefined });
+  let uploadFile = file;
+  if (isHeicFile(file)) {
+    try {
+      uploadFile = await convertHeicToJpeg(file);
+    } catch {
+      return {
+        ok: false as const,
+        error: "아이폰 사진 변환에 실패했어. 다른 사진으로 다시 시도해줘.",
+      };
+    }
+  } else if (!ALLOWED_TYPES.includes(file.type)) {
+    return {
+      ok: false as const,
+      error: "이미지 파일(jpg, png, webp, gif, 아이폰 사진)만 올릴 수 있어.",
+    };
+  }
+
+  await createPhotoRow({ file: uploadFile, caption: caption || undefined });
   revalidatePath("/photos");
   return { ok: true as const };
 }
