@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { getNoticesNeedingReminder, markReminded } from "@/lib/data";
+import {
+  getNoticesNeedingReminder,
+  markReminded,
+  deleteExpiredNotices,
+} from "@/lib/data";
 import { sendPushToAudience } from "@/lib/webpush";
 
 function kstDateString(offsetDays: number) {
@@ -15,8 +19,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  const today = kstDateString(0);
   const tomorrow = kstDateString(1);
   const nextWeek = kstDateString(7);
+
+  const expiredCount = await deleteExpiredNotices(today);
 
   const [dueTomorrow, dueNextWeek] = await Promise.all([
     getNoticesNeedingReminder("reminded_1day", tomorrow),
@@ -45,5 +52,6 @@ export async function GET(request: Request) {
     ok: true,
     tomorrow: dueTomorrow.length,
     nextWeek: dueNextWeek.length,
+    expiredDeleted: expiredCount,
   });
 }

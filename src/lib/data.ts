@@ -56,6 +56,18 @@ export async function deleteNoticeRow(id: string) {
   if (error) throw error;
 }
 
+// 마감일(due_date)이 지난(오늘보다 이전) 공지를 정리 — 오늘 날짜는 KST 기준 "YYYY-MM-DD"
+export async function deleteExpiredNotices(todayKst: string): Promise<number> {
+  const { data, error } = await supabase
+    .from("notices")
+    .delete()
+    .not("due_date", "is", null)
+    .lt("due_date", todayKst)
+    .select("id");
+  if (error) throw error;
+  return data.length;
+}
+
 // --- Praises ---
 export async function getPraises(): Promise<Praise[]> {
   const { data, error } = await supabase
