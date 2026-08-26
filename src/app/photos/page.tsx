@@ -1,11 +1,13 @@
 import { getPhotos } from "@/lib/data";
 import { isAdmin } from "@/lib/auth";
+import { getCurrentStudent } from "@/lib/studentAuth";
 import { deletePhoto } from "@/app/actions";
 import DeleteButton from "@/components/DeleteButton";
 import PhotoUploadForm from "@/components/PhotoUploadForm";
 
 export default async function PhotosPage() {
   const admin = await isAdmin();
+  const student = await getCurrentStudent();
   const photos = await getPhotos();
 
   return (
@@ -25,27 +27,33 @@ export default async function PhotosPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {photos.map((p) => (
-            <div
-              key={p.id}
-              className="group relative overflow-hidden rounded-xl border bg-white shadow-sm"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={p.url}
-                alt={p.caption || "추억 사진"}
-                className="aspect-square w-full object-cover"
-              />
-              {p.caption && (
-                <div className="p-2 text-xs text-slate-500">{p.caption}</div>
-              )}
-              {admin && (
-                <div className="absolute right-1 top-1">
-                  <DeleteButton onDelete={deletePhoto.bind(null, p.id)} label="✕" />
-                </div>
-              )}
-            </div>
-          ))}
+          {photos.map((p) => {
+            const canDelete = admin || (student && p.studentId === student.id);
+            return (
+              <div
+                key={p.id}
+                className="group relative overflow-hidden rounded-xl border bg-white shadow-sm"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.url}
+                  alt={p.caption || "추억 사진"}
+                  className="aspect-square w-full object-cover"
+                />
+                {p.caption && (
+                  <div className="p-2 text-xs text-slate-500">{p.caption}</div>
+                )}
+                {canDelete && (
+                  <div className="absolute right-1 top-1">
+                    <DeleteButton
+                      onDelete={deletePhoto.bind(null, p.id)}
+                      label="✕"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

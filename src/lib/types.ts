@@ -42,6 +42,7 @@ export type Photo = {
   id: string;
   url: string;
   caption?: string;
+  studentId?: string | null;
   createdAt: string;
 };
 

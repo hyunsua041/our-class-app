@@ -151,14 +151,24 @@ export async function uploadPhoto(formData: FormData) {
     };
   }
 
-  await createPhotoRow({ file: uploadFile, caption: caption || undefined });
+  const studentId = await getStudentId();
+  await createPhotoRow({
+    file: uploadFile,
+    caption: caption || undefined,
+    studentId,
+  });
   revalidatePath("/photos");
   return { ok: true as const };
 }
 
 export async function deletePhoto(id: string) {
-  if (!(await isAdmin())) throw new Error("권한이 없어요.");
-  await deletePhotoRow(id);
+  if (await isAdmin()) {
+    await deletePhotoRow(id);
+  } else {
+    const studentId = await getStudentId();
+    if (!studentId) throw new Error("권한이 없어요.");
+    await deletePhotoRow(id, studentId);
+  }
   revalidatePath("/photos");
 }
 

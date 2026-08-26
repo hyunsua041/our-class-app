@@ -110,6 +110,7 @@ export async function getPhotos(): Promise<Photo[]> {
     id: p.id,
     url: p.url,
     caption: p.caption ?? undefined,
+    studentId: p.student_id ?? null,
     createdAt: p.created_at,
   }));
 }
@@ -117,6 +118,7 @@ export async function getPhotos(): Promise<Photo[]> {
 export async function createPhotoRow(input: {
   file: File;
   caption?: string;
+  studentId?: string | null;
 }) {
   const ext = input.file.name.includes(".")
     ? input.file.name.split(".").pop()
@@ -136,17 +138,24 @@ export async function createPhotoRow(input: {
   const { error } = await supabase.from("photos").insert({
     url: publicUrl,
     caption: input.caption || null,
+    student_id: input.studentId || null,
   });
   if (error) throw error;
 }
 
-export async function deletePhotoRow(id: string) {
+// ownerStudentId를 넘기면 그 학생이 올린 사진일 때만 삭제(본인 사진 삭제용).
+// 안 넘기면(관리자) 소유자 상관없이 삭제.
+export async function deletePhotoRow(id: string, ownerStudentId?: string) {
   const { data: photo, error: fetchError } = await supabase
     .from("photos")
-    .select("url")
+    .select("url, student_id")
     .eq("id", id)
     .single();
   if (fetchError) throw fetchError;
+
+  if (ownerStudentId && photo.student_id !== ownerStudentId) {
+    throw new Error("본인이 올린 사진만 지울 수 있어요.");
+  }
 
   const marker = `/storage/v1/object/public/${PHOTOS_BUCKET}/`;
   const path = photo.url.includes(marker)
