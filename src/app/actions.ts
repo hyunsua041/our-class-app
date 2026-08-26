@@ -137,7 +137,8 @@ export async function uploadPhoto(formData: FormData) {
   if (isHeicFile(file)) {
     try {
       uploadFile = await convertHeicToJpeg(file);
-    } catch {
+    } catch (err) {
+      console.error("HEIC convert failed", err);
       return {
         ok: false as const,
         error: "아이폰 사진 변환에 실패했어. 다른 사진으로 다시 시도해줘.",
